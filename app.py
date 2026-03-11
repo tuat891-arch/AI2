@@ -2,45 +2,55 @@ import streamlit as st
 import google.generativeai as genai
 from PIL import Image
 
-# --- CẤU HÌNH API KEY ---
-# Cách này dùng được cả trên máy tính (nếu dán Key vào) và trên Streamlit (dùng Secrets)
-try:
-    # Ưu tiên lấy từ Secrets (khi chạy trên mạng)
-    API_KEY = st.secrets["GEMINI_API_KEY"]
-except:
-    # Nếu chạy ở máy tính thì dán mã Key của bạn vào đây
-    API_KEY = "DÁN_MÃ_API_KEY_CỦA_BẠN_VÀO_ĐÂY"
-
+# --- LẤY API KEY ---
+API_KEY = st.secrets["GEMINI_API_KEY"]
 genai.configure(api_key=API_KEY)
 
-# --- KHỞI TẠO MODEL (Phải ở ngoài khối try-except của nút bấm) ---
-model = genai.GenerativeModel('gemini-1.5-flash')
+# --- MODEL ---
+model = genai.GenerativeModel("gemini-1.5-flash-latest")
 
-# --- GIAO DIỆN APP ---
-st.set_page_config(page_title="Smart Meal Planner", page_icon="🥗")
-st.title("🥗 Smart Meal Planner")
-st.write("Dự án AI hỗ trợ sinh viên quản lý thực đơn tiết kiệm.")
+# --- GIAO DIỆN ---
+st.set_page_config(page_title="Smart Meal Planner", page_icon="🍱")
 
-uploaded_file = st.file_uploader("📸 Tải ảnh hóa đơn hoặc thực phẩm", type=["jpg", "jpeg", "png"])
+st.title("🍱 Smart Meal Planner")
+st.write("Upload hóa đơn để AI phân tích và gợi ý thực đơn.")
 
-if uploaded_file is not None:
+# --- UPLOAD ẢNH ---
+uploaded_file = st.file_uploader(
+    "📷 Tải ảnh hóa đơn", 
+    type=["jpg","jpeg","png"]
+)
+
+if uploaded_file:
+
     image = Image.open(uploaded_file)
-    st.image(image, caption='Ảnh đã tải lên', use_container_width=True)
-    
-    if st.button("🚀 Phân tích & Gợi ý thực đơn"):
-        with st.spinner('AI đang tính toán...'):
+    st.image(image, caption="Ảnh đã tải lên", use_container_width=True)
+
+    if st.button("🚀 Phân tích hóa đơn"):
+
+        with st.spinner("AI đang phân tích..."):
+
+            prompt = """
+            Đây là ảnh hóa đơn mua thực phẩm.
+
+            Hãy trích xuất:
+            - Tên món
+            - Số lượng
+            - Giá tiền
+
+            Sau đó gợi ý thực đơn đơn giản có thể nấu từ các nguyên liệu này.
+            """
+
             try:
-                # Câu lệnh cho AI
-                prompt = """
-                Hãy đọc hóa đơn này và:
-                1. Liệt kê các thực phẩm đã mua kèm giá tiền.
-                2. Gợi ý 3 món ăn ngon, tiết kiệm cho sinh viên từ nguyên liệu này.
-                3. Viết hướng dẫn nấu ăn ngắn gọn.
-                Trả lời bằng tiếng Việt.
-                """
-                # Gọi AI xử lý
-                response = model.generate_content([prompt, image])
-                st.success("Xong rồi!")
-                st.markdown(response.text)
+
+                response = model.generate_content(
+                    [prompt, image]
+                )
+
+                st.success("Kết quả:")
+                st.write(response.text)
+
             except Exception as e:
-                st.error(f"Có lỗi xảy ra khi gọi AI: {e}")
+
+                st.error("Lỗi khi gọi AI:")
+                st.write(e)
