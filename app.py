@@ -7,7 +7,7 @@ API_KEY = st.secrets["GEMINI_API_KEY"]
 genai.configure(api_key=API_KEY)
 
 # ===== MODEL =====
-model = genai.GenerativeModel("gemini-1.5-flash")
+model = genai.GenerativeModel("gemini-1.5-pro-latest")
 
 # ===== GIAO DIỆN =====
 st.set_page_config(page_title="Smart Meal Planner", page_icon="🍱")
